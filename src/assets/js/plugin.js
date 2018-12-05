@@ -85,7 +85,10 @@ window.onload = function () {
     extension.call('compiler', 'getCompilationResult', [], function (error, result ) {
       console.log(result);
         if(result) {
-          handleCompileSuccess(result);
+          if(document.querySelector('input[id="verify-contract-address"]').value == "") {
+
+          }
+         // handleCompileSuccess(result);
         }
         else{
           handleCompileFailure(error);
