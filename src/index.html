@@ -27,24 +27,25 @@
 		THE SOFTWARE.
 		-->
 		<meta http-equiv="X-UA-Compatible" content="chrome=1">
-		<title></title>
-		<link rel="stylesheet" href="assets/css/pygment_trac.css">
-		<link rel="stylesheet" href="assets/css/font-awesome.min.css">
-		<script type="text/javascript" src="remix-api.js"></script>
-        <script type="text/javascript" src="plugin.js"></script>
+		<title>Verify Contract</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+		<link href="assets/css/style.css" rel="stylesheet">
 	</head>
 	<body>
-		<div>PLUGIN</div>
-		<input type="text" id="filename"></input> 
-		<input type="text" id="valuetosend"></input> <br>
-		<input type="button" id="testmessageadd">add config</input> <br>
-		<input type="button" id="testmessageremove">remove config</input> <br>
-		<input type="button" id="testmessagerget">get config</input> <br>
-		<input type="button" id="testcontractcreation">oraclize contract creation</input> <br>
- 		<input type="button" id="testaccountcreation">account creation</input> <br>
- 		<input type="button" id="testchangetitle">change title</input> <br>
+		<label for="verify-contract-address" id="header-label">Please enter the address of your deployed contract below. </label>
 		<br>
-		<div id='compilationdata'></div>
+		<input type="text" id="verify-contract-address" placeholder="i.e. 0x11b79afc03baf25c631dd70169bb6a3160b2706e"/>
+		<br>
+		<br>
+   		<div id="btns">
+   			<input type="submit" id="verify-contract" value="Verify Contract"/>
+   		</div>
+		<br>
+		<br>
+		<br>
+		<div id='results'></div>
 	</body>
+	<script type="text/javascript" src="assets/js/remix-api.js"></script>
+    <script type="text/javascript" src="assets/js/plugin.js"></script>
 </html>
