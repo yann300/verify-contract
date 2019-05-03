@@ -31,22 +31,22 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 		<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
 		<link href="assets/css/style.css" rel="stylesheet">
+		<script src="https://unpkg.com/remix-plugin"></script>
+		<script type="text/javascript" src="assets/js/plugin.js"></script>
 	</head>
 	<body>
-		<label for="verify-contract-address" id="header-label">Please enter the address of your deployed contract below. </label>
+		<label for="verifycontractaddress" id="header-label">Please enter the file, name and address of your deployed contract below. </label>
 		<br>
+		<input type="text" id="verifycontractname" placeholder="i.e. Ballot"/>
 		<br>
-		<input type="text" id="verify-contract-address" placeholder="i.e. 0x11b79afc03baf25c631dd70169bb6a3160b2706e"/>
+		<input type="text" id="verifycontractarguments" placeholder=""/>
 		<br>
+		<input type="text" id="verifycontractaddress" placeholder="i.e. 0x11b79afc03baf25c631dd70169bb6a3160b2706e"/>
 		<br>
    		<div id="btns">
-   			<input type="submit" id="verify-contract" value="Verify Contract"/>
+   			<button class="btn btn-lg btn-secondary" id="verifycontract">Verify Contract</button>
    		</div>
 		<br>
-		<br>
-		<br>
 		<div id='results'></div>
-	</body>
-	<script type="text/javascript" src="assets/js/remix-api.js"></script>
-    <script type="text/javascript" src="assets/js/plugin.js"></script>
+	</body>	
 </html>

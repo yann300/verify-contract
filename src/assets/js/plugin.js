@@ -1,38 +1,53 @@
-var extension = new window.RemixExtension();
+const { createIframeClient } = remixPlugin
+const devMode = { port: 8080 }
+const client = createIframeClient({ devMode });
+
 var compileMsg = "Compiling smart contract, please wait...";
 
-async function do_post(data, cb) {
-  var etherscanApi = "https://api.etherscan.io/api";
-  var contractData = data[0];
+async function do_post(info, cb) {
+  const network = await client.call('network', 'detectNetwork')
+  var etherscanApi
+  if (network) {
+    if (network.name === 'main') {
+      etherscanApi = `https://api.etherscan.io/api`;
+    } else {
+      etherscanApi = `https://api-${network.name.toLowerCase()}.etherscan.io/api`;
+    }
+  } else {
+    return alert('no known network to verify against')
+  }
+
+  const name = document.getElementById('verifycontractname').value;
+  var contractMetadata = info.data.contracts[info.fileName][name]['metadata'] 
+  contractMetadata = JSON.parse(contractMetadata)
   var data = {
-      apikey: '2GTVV7HHTK8CCG2NFK5NRXYPY6DKINJH48',                     //A valid API-Key is required        
+      apikey: 'CC4YVQGTC45H2IXX6BDUNP54TXJHKVMWY5',                     //A valid API-Key is required        
       module: 'contract',                             //Do not change
       action: 'verifysourcecode',                     //Do not change
-      contractaddress: $('#contractaddress').val(),   //Contract Address starts with 0x...     
-      sourceCode: contractData.sources[contractData.sources.target].content,             //Contract Source Code (Flattened if necessary)
-      contractname: contractData.sources.target.split("/").pop(),         //ContractName
-      compilerversion: $('#compilerversion').val(),   // see http://etherscan.io/solcversions for list of support versions
-      optimizationUsed: $('#optimizationUsed').val(), //0 = Optimization used, 1 = No Optimization
-      runs: 200,                                      //set to 200 as default unless otherwise         
-      constructorArguements: $('#constructorArguements').val(),   //if applicable
+      contractaddress: document.getElementById('verifycontractaddress').value, //Contract Address starts with 0x...     
+      sourceCode: info.source.sources[info.fileName].content,             //Contract Source Code (Flattened if necessary)
+      contractname: name,         //ContractName
+      compilerversion: contractMetadata.compiler.version,   // see http://etherscan.io/solcversions for list of support versions
+      optimizationUsed: contractMetadata.settings.optimizer.enabled, //0 = Optimization used, 1 = No Optimization
+      runs: contractMetadata.settings.optimizer.runs,                                      //set to 200 as default unless otherwise         
+      constructorArguements: document.getElementById('verifycontractarguments').value,   //if applicable
   };
   try{
-    const response =  await fetch(analysisServerUrl,{ method: 'POST', headers: { "Content-Type": "application/json; charset=utf-8"},body: JSON.stringify(data)});
+    console.log(data)
+    const response =  await fetch(etherscanApi,{ method: 'POST', headers: { "Content-Type": "application/json; charset=utf-8"},body: data});
     console.log(response);
     cb(response);
-
   }
   catch (error) {
     console.log(error);
   }
- 
 }
 
 
 async function do_get(data, cb) {
 
   try{
-    const response =  await (await fetch(analysisServerUrl,{ method: 'POST', headers: { "Content-Type": "application/json; charset=utf-8"},body: JSON.stringify(data)})).json();
+    const response =  await (await fetch(etherscanApi,{ method: 'POST', headers: { "Content-Type": "application/json; charset=utf-8"},body: data})).json();
 
     cb(response);
 
@@ -44,60 +59,56 @@ async function do_get(data, cb) {
 }
 
 function handleCompileSuccess(result) {
-  if(result[0] === null){
+  if(result === null){
      document.querySelector('div#results').innerHTML = `No compile results found for this contract, please make sure <br> the contract compiles correctly.`;
      return;
   }
   document.querySelector('div#results').innerHTML = `Verifying contract. Please wait...`;
   // fetch results
   do_post(result, function(res) {
-
-        document.querySelector('div#results').innerHTML = res['output'];
-    
+        document.querySelector('div#results').innerHTML = res.body;    
   });
    
 
 }
 
-function handleCompileFailure(error) {
-  document.querySelector('div#results').innerHTML = error;
-}
-
-
-
+let latestCompilationResult = null
 window.onload = function () {
+
+  client.onload(() => {
+    console.log('loaded')
+  })
+
   console.log("LOADED CONTRACT VERIFICATION PLUGIN");
-  extension.listen('compiler', 'compilationFinished', function (result) {
+  client.on('solidity', 'compilationFinished', function (fileName, source, languageVersion, data) {
+    latestCompilationResult = { fileName, source, languageVersion, data }
     console.log("GOT A COMPILE RESULT: ");
     console.log(result);
   });
 
-  extension.listen('txlistener', 'newTransaction', function (transaction) {
+  client.on('udapp', 'sendTransaction', function (transaction) {
     console.log("GOT A TRANSACTION ");
     console.log(transaction);
   });
 
 
 
-  document.querySelector('input#verify-contract').addEventListener('click', function () {
+  document.querySelector('button#verifycontract').addEventListener('click', async function () {
     var div = document.querySelector('div#results');
     div.innerHTML = compileMsg;
-    extension.call('compiler', 'getCompilationResult', [], function (error, result ) {
-      console.log(result);
-        if(result) {
-          if(document.querySelector('input[id="verify-contract-address"]').value.trim() !== "") {
-            handleCompileSuccess(result);
-          }
-          else {
-            handleCompileFailure("Please enter a valid contract address");
-          }
-         // 
-        }
-        else{
-          handleCompileFailure(error);
-        }
-
-    });
+    console.log(latestCompilationResult);
+    if(latestCompilationResult) {
+      if(document.querySelector('input[id="verifycontractaddress"]').value.trim() !== "") {
+        handleCompileSuccess(latestCompilationResult);
+      }
+      else {
+        alert("Please enter a valid contract address");
+      }
+    }
+    else{
+      alert('no compilation result available')
+    }
   });
 
 }
+ 
